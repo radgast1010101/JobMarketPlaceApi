@@ -1,9 +1,11 @@
 ﻿
 //using JobMarketPlaceApi.Data;
 
+using JobMarketPlaceApi.Data;
 using JobMarketPlaceApi.Entities;
 using JobMarketPlaceApi.Services;
 using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
 //using Microsoft.EntityFrameworkCore;
@@ -170,10 +172,10 @@ namespace JobMarketPlaceApi
                     return TypedResults.BadRequest("StartDate is required");
 
 
-                // simple auth: subject must match customer id
-                var subject = user.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? user.FindFirst("sub")?.Value;
-                if (string.IsNullOrEmpty(subject) || !Guid.TryParse(subject, out var subjectGuid) || subjectGuid != customerId)
-                    return TypedResults.Forbid();
+                // TEMP: use dev auth atm, simple auth: subject must match customer id
+                //var subject = user.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? user.FindFirst("sub")?.Value;
+                //if (string.IsNullOrEmpty(subject) || !Guid.TryParse(subject, out var subjectGuid) || subjectGuid != customerId)
+                //    return TypedResults.Forbid();
 
 
                 try
@@ -208,6 +210,29 @@ namespace JobMarketPlaceApi
                 .WithOpenApi()
                 .RequireAuthorization();
 
+            // adminOnly
+            group.MapPost("/", async (Customer customer, JobMarketPlaceApiContext db) =>
+            {
+                db.Customer.Add(customer);
+                await db.SaveChangesAsync();
+                return TypedResults.Created($"/api/Customer/{customer.Id}", customer);
+            })
+            .WithName("CreateCustomer")
+            .WithOpenApi()
+            .RequireAuthorization();
+
+
+            //adminOnly
+            group.MapDelete("/{id}", async Task<Results<Ok, NotFound>> (Guid id, JobMarketPlaceApiContext db) =>
+            {
+                var affected = await db.Customer
+                    .Where(model => model.Id == id)
+                    .ExecuteDeleteAsync();
+                return affected == 1 ? TypedResults.Ok() : TypedResults.NotFound();
+            })
+            .WithName("DeleteCustomer")
+            .WithOpenApi()
+            .RequireAuthorization();
         }
     }
 }

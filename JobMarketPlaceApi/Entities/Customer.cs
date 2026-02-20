@@ -25,8 +25,8 @@ namespace JobMarketPlaceApi.Entities
                 throw new DomainException("StartDate must be less than or equal to DueDate");
 
             var effectiveBudget = budget ?? 0;
-            if (effectiveBudget < 0)
-                throw new DomainException("Budget must be >= 0");
+            //if (effectiveBudget < 0)
+            //    throw new DomainException("Budget must be >= 0");
 
             return new Job
             {

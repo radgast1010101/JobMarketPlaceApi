@@ -203,6 +203,30 @@ namespace JobMarketPlaceApi
             .WithName("CreateJobOfferForContractor")
             .WithOpenApi()
             .RequireAuthorization();
+
+            // adminOnly
+            group.MapPost("/", async (Contractor contractor, JobMarketPlaceApiContext db) =>
+            {
+                db.Contractor.Add(contractor);
+                await db.SaveChangesAsync();
+                return TypedResults.Created($"/api/Contractor/{contractor.Id}", contractor);
+            })
+            .WithName("CreateContractor")
+            .WithOpenApi()
+            .RequireAuthorization();
+            
+            //adminOnly
+            group.MapDelete("/{id}", async Task<Results<Ok, NotFound>> (Guid id, JobMarketPlaceApiContext db) =>
+            {
+                var affected = await db.Contractor
+                    .Where(model => model.Id == id)
+                    .ExecuteDeleteAsync();
+                return affected == 1 ? TypedResults.Ok() : TypedResults.NotFound();
+            })
+            .WithName("DeleteContractor")
+            .WithOpenApi()
+            .RequireAuthorization();
+
         }
     }
 }

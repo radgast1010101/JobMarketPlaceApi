@@ -46,5 +46,7 @@ namespace JobMarketPlaceApi.Data.Repositories
 
         public Task<Customer?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default) =>
             _db.Customer.AsNoTracking().FirstOrDefaultAsync(c => c.Id == id, cancellationToken);
+
+
     }
 }
