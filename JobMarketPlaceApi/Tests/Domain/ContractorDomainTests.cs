@@ -28,26 +28,30 @@ namespace JobMarketPlaceApi.Tests.Domain
                 Price = price 
             };
 
-            var repoMock2 = new Mock<IJobOfferRepository>();
+            var repoMock = new Mock<IJobOfferRepository>(MockBehavior.Strict);
 
-            repoMock2
-                .Setup(r => r.CreateAsync(jobOfferResults, It.IsAny<CancellationToken>()))
+            repoMock
+                .Setup(r => r.CreateAsync(
+                    It.Is<JobOffer>(jo =>
+                        jo.JobId == jobId &&
+                        jo.ContractorId == contractorId &&
+                        jo.Price == price),
+                    It.IsAny<CancellationToken>()))
                 .ReturnsAsync(jobOfferResults)
                 .Verifiable();
 
-            //repoMock2.SetupAllProperties();
-
-            var svc2 = new ContractorJobOfferService(repoMock2.Object); 
+            var svc = new ContractorJobOfferService(repoMock.Object); 
             
             // Act
-            var result2 = await svc2.CreateOfferAsync(contractorId, jobId, price);
+            var result = await svc.CreateOfferAsync(contractorId, jobId, price);
 
             // Assert
-            result2.Should().NotBeNull();
-            result2.ContractorId.Equals(contractorId);
-            result2.JobId.Equals(jobId);
-            result2.Price.Equals(price);
-            result2.Id.Equals(jobOfferId);
+            repoMock.Verify(); // ensure repository was called
+            result.Should().NotBeNull();
+            result.ContractorId.Should().Be(contractorId);
+            result.JobId.Should().Be(jobId);
+            result.Price.Should().Be(price);
+            result.Id.Should().Be(jobOfferId);
         }
     }
 }

@@ -1,4 +1,3 @@
-// JobMarketPlaceApi\Data\Repositories\IJobRepository.cs
 using JobMarketPlaceApi.Entities;
 
 namespace JobMarketPlaceApi.Data.Repositories

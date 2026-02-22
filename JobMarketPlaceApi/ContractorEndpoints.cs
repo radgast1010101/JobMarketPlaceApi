@@ -3,7 +3,6 @@ using Microsoft.EntityFrameworkCore;
 using JobMarketPlaceApi.Data;
 using JobMarketPlaceApi.Entities;
 using Microsoft.AspNetCore.Http.HttpResults;
-//using Microsoft.AspNetCore.OpenApi;
 
 namespace JobMarketPlaceApi
 {
@@ -22,12 +21,12 @@ namespace JobMarketPlaceApi
         {
             var group = routes.MapGroup("/api/Contractor").WithTags(nameof(Contractor));
 
-            // Exact lookup by id
+            // Exact lookup by id, Non Repository Pattern
             group.MapGet("/{id}", async Task<Results<Ok<ContractorDto>, NotFound>> (
                     Guid id,
                     /*  Cache: IMemoryCache cache*/
 
-                    /*  JobMarketPlaceApiContext db, improved by always using repository/service interfaces*/
+                    /*  JobMarketPlaceApiContext db, improved by using repository/service interfaces*/
                     JobMarketPlaceApiContext db) =>
             {
                 var c = await db.Contractor
@@ -71,7 +70,7 @@ namespace JobMarketPlaceApi
                 .RequireAuthorization();
 
 
-            // Prefix search with keyset pagination using provider-safe raw SQL for the keyset predicate.
+            // Search contractors: Prefix search with keyset pagination using provider-safe raw SQL for the keyset predicate.
             // Route: GET /api/Contractor/search/{prefix}?limit=20&afterName=...&afterId=...
             group.MapGet("/search/{prefix}", async Task<Results<Ok<ContractorSearchResponse>, BadRequest>> (
                     string prefix,
@@ -152,10 +151,6 @@ namespace JobMarketPlaceApi
                  }
 
 
-
-
-
-
                 var hasMore = rows.Count == fetch;
                 if (hasMore)
                 {
@@ -185,17 +180,12 @@ namespace JobMarketPlaceApi
             group.MapPost("/{contractorId:guid}/joboffers", async Task<Results<Created<JobOffer>, BadRequest<string>>> (
                     Guid contractorId,
                     JobOffer input,
-                    //optional check: JobMarketPlaceApi.Data.Repositories.IContractorRepository? contractorRepo, // optional check
                     JobMarketPlaceApi.Services.IContractorJobOfferService service) =>
             {
                 // Basic validation
                 if (input == null) return TypedResults.BadRequest("payload required");
                 if (input.JobId == Guid.Empty) return TypedResults.BadRequest("JobId required");
                 if (input.Price < 0) return TypedResults.BadRequest("Price must be >= 0");
-
-                // If you want to verify contractor existence uncomment contractorRepo check
-                // var contractor = await contractorRepo?.GetByIdAsync(contractorId);
-                // if (contractorRepo != null && contractor is null) return TypedResults.BadRequest("Contractor not found");
 
                 var created = await service.CreateOfferAsync(contractorId, input.JobId, input.Price);
                 return TypedResults.Created($"/api/JobOffer/{created.Id}", created);
@@ -204,7 +194,7 @@ namespace JobMarketPlaceApi
             .WithOpenApi()
             .RequireAuthorization();
 
-            // adminOnly
+            #region AdminOnly
             group.MapPost("/", async (Contractor contractor, JobMarketPlaceApiContext db) =>
             {
                 db.Contractor.Add(contractor);
@@ -215,7 +205,6 @@ namespace JobMarketPlaceApi
             .WithOpenApi()
             .RequireAuthorization();
             
-            //adminOnly
             group.MapDelete("/{id}", async Task<Results<Ok, NotFound>> (Guid id, JobMarketPlaceApiContext db) =>
             {
                 var affected = await db.Contractor
@@ -227,6 +216,7 @@ namespace JobMarketPlaceApi
             .WithOpenApi()
             .RequireAuthorization();
 
+            #endregion
         }
     }
 }

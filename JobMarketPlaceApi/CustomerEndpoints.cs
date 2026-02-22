@@ -1,21 +1,16 @@
-﻿
-//using JobMarketPlaceApi.Data;
-
-using JobMarketPlaceApi.Data;
+﻿using JobMarketPlaceApi.Data;
 using JobMarketPlaceApi.Entities;
 using JobMarketPlaceApi.Services;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
-using System.Security.Claims;
-
-//using Microsoft.EntityFrameworkCore;
-// cache: using Microsoft.Extensions.Caching.Memory;
+//using System.Security.Claims; TEMP: use dev auth atm
 
 namespace JobMarketPlaceApi
 {
     public static class CustomerEndpoints
     {
-        // DTOs returned by the API, also immutable, concurrency safe
+        // DTOs returned by the API, also immutable, concurrency-safe
+        // Maybe separated to a module/folder later
         public record CustomerDto(Guid Id, string FirstName, string LastName);
         public record CustomerSearchResponse(
             List<CustomerDto> Items,
@@ -23,108 +18,13 @@ namespace JobMarketPlaceApi
             int Page,
             int PageSize
         );
-
-
-
-        public record JobDto(Guid Id, string Description, string AcceptedBy, int Budget,
-            DateTime StartDate, DateTime DueDate);
-
-        public record CreateJobResponse(JobDto CreatedJob);
-
         public record CreateJobRequest(string Description, DateTime StartDate, DateTime? DueDate = null, int? Budget = null);
-
-
-        #region NonRepositoryPattern
-        /*
-
-                public static void MapCustomerEndpoints(this IEndpointRouteBuilder routes)
-                {
-                    var group = routes.MapGroup("/api/Customer").WithTags(nameof(Customer));
-
-                    // Offset pagination: /api/Customer/search/{prefix}?page=1&size=20
-                    group.MapGet("/search/{prefix}", async Task<Results<Ok<CustomerSearchResponse>, BadRequest>> (
-                            string prefix,
-                            int? page,
-                            int? size,
-                            // Cache: IMemoryCache cache,
-
-                            // JobMarketPlaceApiContext db, improved by always using repository/service interfaces
-                            JobMarketPlaceApiContext db) =>
-                    {
-                        // Validation: minimum prefix length (3)
-                        var trimmed = (prefix ?? string.Empty).Trim();
-                        if (trimmed.Length < 3)
-                        {
-                            return TypedResults.BadRequest();
-                        }
-
-                        // Pagination parameters and validation
-                        var pageNumber = Math.Max(page ?? 1, 1);
-                        var pageSize = Math.Clamp(size ?? 20, 1, 100);
-
-                        // Cache:
-                                    // Build a cache key that includes prefix + paging so different pages are cached separately
-                                    //var cacheKey = $"customer:search:{trimmed}:p{pageNumber}:s{pageSize}";
-                                    // Try to get cached response; if missing, populate and cache it.
-                                    if (!cache.TryGetValue(cacheKey, out CustomerSearchResponse? cached))
-                                    {
-                                        var skip = (pageNumber - 1) * pageSize;
-                                        ...
-                                        ...
-                                        if (hasMore) {...}
-
-                                        cached = new CustomerSearchResponse(results, hasMore, pageNumber, pageSize);
-
-                                         // Cache the response with size=1 and sliding expiration
-                                        var cacheEntryOptions = new MemoryCacheEntryOptions
-                                        {
-                                            SlidingExpiration = TimeSpan.FromMinutes(5)
-                                        }.SetSize(1);
-
-                                        cache.Set(cacheKey, cached, cacheEntryOptions);
-                            //         }
-
-
-                        var skip = (pageNumber - 1) * pageSize;
-                        var fetch = pageSize + 1; // fetch one extra to detect hasMore
-
-                        // Base query: case-insensitive prefix using LIKE (NOCASE collation applied at model)
-                        var query = db.Customer
-                                      .AsNoTracking()
-                                      .Where(c => EF.Functions.Like(c.LastName, trimmed + "%"));
-
-                        var results = await query
-                            .OrderBy(c => c.LastName)
-                            .ThenBy(c => c.Id)
-                            .Skip(skip)
-                            .Take(fetch)
-                            .Select(c => new CustomerDto(c.Id, c.FirstName, c.LastName))
-                            .ToListAsync();
-
-                        var hasMore = results.Count == fetch;
-                        if (hasMore)
-                        {
-                            // remove the extra item from results
-                            results.RemoveAt(results.Count - 1);
-                        }
-
-                        var response = new CustomerSearchResponse(results, hasMore, pageNumber, pageSize);
-
-                        return TypedResults.Ok(response);
-                    })
-                        .WithName("SearchCustomers")
-                        .WithOpenApi()
-                        .RequireAuthorization(); // placeholder: requires configured auth middleware
-                }
-
-            */
-        #endregion
 
         public static void MapCustomerEndpoints(this IEndpointRouteBuilder routes)
         {
             var group = routes.MapGroup("/api/Customer").WithTags(nameof(Customer));
 
-            // Offset pagination: /api/Customer/search/{prefix}?page=1&size=20
+            // Search customers: /api/Customer/search/{prefix}?page=1&size=20
             group.MapGet("/search/{prefix}", async Task<Results<Ok<CustomerSearchResponse>, BadRequest>> (
                     string prefix,
                     int? page,
@@ -155,13 +55,13 @@ namespace JobMarketPlaceApi
                 .WithOpenApi()
                 .RequireAuthorization(); // placeholder: requires configured auth middleware
 
-            // create jobs
+            // Create jobs
             group.MapPost("/{customerId:guid}/jobs", 
                 async Task<Results<Created<object>, BadRequest<string>, NotFound, IResult>> (
                     Guid customerId,
                     CreateJobRequest request,
                     ICustomerJobService customerJobService,
-                    ClaimsPrincipal user,
+                    //ClaimsPrincipal user, TEMP: use dev auth atm
                     CancellationToken cancellationToken) =>
             {
                 // Input validation (defensive, keep endpoint thin)
@@ -172,7 +72,8 @@ namespace JobMarketPlaceApi
                     return TypedResults.BadRequest("StartDate is required");
 
 
-                // TEMP: use dev auth atm, simple auth: subject must match customer id
+                // TEMP: use dev auth atm, not below
+                // simple auth: subject must match customer id
                 //var subject = user.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? user.FindFirst("sub")?.Value;
                 //if (string.IsNullOrEmpty(subject) || !Guid.TryParse(subject, out var subjectGuid) || subjectGuid != customerId)
                 //    return TypedResults.Forbid();
@@ -210,7 +111,8 @@ namespace JobMarketPlaceApi
                 .WithOpenApi()
                 .RequireAuthorization();
 
-            // adminOnly
+            #region AdminOnly
+            // Simple, Non Repository Pattern endpoints below, for demo purposes only
             group.MapPost("/", async (Customer customer, JobMarketPlaceApiContext db) =>
             {
                 db.Customer.Add(customer);
@@ -221,8 +123,6 @@ namespace JobMarketPlaceApi
             .WithOpenApi()
             .RequireAuthorization();
 
-
-            //adminOnly
             group.MapDelete("/{id}", async Task<Results<Ok, NotFound>> (Guid id, JobMarketPlaceApiContext db) =>
             {
                 var affected = await db.Customer
@@ -233,6 +133,8 @@ namespace JobMarketPlaceApi
             .WithName("DeleteCustomer")
             .WithOpenApi()
             .RequireAuthorization();
+
+            #endregion
         }
     }
 }

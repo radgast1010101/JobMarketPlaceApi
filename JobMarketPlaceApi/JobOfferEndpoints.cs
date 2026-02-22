@@ -2,7 +2,6 @@
 using JobMarketPlaceApi.Data;
 using JobMarketPlaceApi.Entities;
 using Microsoft.AspNetCore.Http.HttpResults;
-//using Microsoft.AspNetCore.OpenApi;
 namespace JobMarketPlaceApi;
 
 public static class JobOfferEndpoints
@@ -17,8 +16,7 @@ public static class JobOfferEndpoints
         })
         .WithName("GetAllJobOffers")
         .WithOpenApi()
-          .RequireAuthorization();
-        //.RequireAuthorization("ContractorOwner");
+        .RequireAuthorization();
 
 
         group.MapGet("/{id}", async Task<Results<Ok<JobOffer>, NotFound>> (Guid id, JobMarketPlaceApiContext db) =>
@@ -31,15 +29,12 @@ public static class JobOfferEndpoints
         })
         .WithName("GetJobOfferById")
         .WithOpenApi()
-          .RequireAuthorization();
-        //.RequireAuthorization("ContractorOwner");
+        .RequireAuthorization();
 
-
-
-        // Add Update, Delete endpoints later, if needed
 
         #region AdminOnlyAPI
-        /*
+
+        /* Update job offer
         group.MapPut("/{id}", async Task<Results<Ok, NotFound>> (Guid id, JobOffer jobOffer, JobMarketPlaceApiContext db) =>
         {
             var affected = await db.JobOffer
@@ -54,19 +49,8 @@ public static class JobOfferEndpoints
         .WithName("UpdateJobOffer")
         .WithOpenApi()
         .RequireAuthorization();
-
-
-        group.MapPost("/", async (JobOffer jobOffer, JobMarketPlaceApiContext db) =>
-        {
-            db.JobOffer.Add(jobOffer);
-            await db.SaveChangesAsync();
-            return TypedResults.Created($"/api/JobOffer/{jobOffer.Id}",jobOffer);
-        })
-        .WithName("CreateJobOffer")
-        .WithOpenApi()
-        .RequireAuthorization();
-
         */
+
         group.MapDelete("/{id}", async Task<Results<Ok, NotFound>> (Guid id, JobMarketPlaceApiContext db) =>
         {
             var affected = await db.JobOffer

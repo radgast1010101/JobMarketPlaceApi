@@ -10,6 +10,7 @@ public static class JobEndpoints
     {
         var group = routes.MapGroup("/api/Job").WithTags(nameof(Job));
 
+        // Simple direct db access, non repository pattern for demo purposes
         group.MapGet("/", async (JobMarketPlaceApiContext db) =>
         {
             return await db.Job.ToListAsync();
@@ -29,7 +30,7 @@ public static class JobEndpoints
         .WithOpenApi();
 
         #region AdminOnlyAPI
-        // maybe Admin only
+
         //group.MapPut("/{id}", async Task<Results<Ok, NotFound>> (Guid id, Job job, JobMarketPlaceApiContext db) =>
         //{
         //    var affected = await db.Job
@@ -47,7 +48,6 @@ public static class JobEndpoints
         //.WithName("UpdateJob")
         //.WithOpenApi();
 
-        // maybe Admin only
         //group.MapPost("/", async (Job job, JobMarketPlaceApiContext db) =>
         //{
         //    db.Job.Add(job);
@@ -57,7 +57,6 @@ public static class JobEndpoints
         //.WithName("CreateJob")
         //.WithOpenApi();
 
-        // maybe Admin only
         group.MapDelete("/{id}", async Task<Results<Ok, NotFound>> (Guid id, JobMarketPlaceApiContext db) =>
         {
             var affected = await db.Job
@@ -68,6 +67,7 @@ public static class JobEndpoints
         .WithName("DeleteJob")
         .WithOpenApi()
         .RequireAuthorization();
+
         #endregion
     }
 }

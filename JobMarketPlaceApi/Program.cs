@@ -4,14 +4,15 @@ using JobMarketPlaceApi.Data;
 using JobMarketPlaceApi.Data.Repositories;
 using JobMarketPlaceApi.Services;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.EntityFrameworkCore;
 //using Microsoft.AspNetCore.Authorization;
 
 /* JWT: 
+ * Extended later if we want to support JWT-based authentication
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 */
-using Microsoft.EntityFrameworkCore;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -56,18 +57,8 @@ builder.Services
 */
 builder.Services.AddAuthorization();
 
-//TEMP: Register authorization requirement and handler + policy for contractor ownership
-//builder.Services.AddSingleton<IAuthorizationHandler, ContractorOwnerHandler>();
-//builder.Services.AddAuthorization(options =>
-//{
-//    options.AddPolicy("ContractorOwner", policy =>
-//    {
-//        policy.RequireAuthenticatedUser();
-//        policy.Requirements.Add(new ContractorOwnerRequirement());
-//    });
-//});
 
-// Repository pattern:
+// For Repository pattern and Service layers
 // Register repositories and services (DI) for customer search
 builder.Services.AddScoped<JobMarketPlaceApi.Data.Repositories.ICustomerRepository, JobMarketPlaceApi.Data.Repositories.CustomerRepository>();
 builder.Services.AddScoped<JobMarketPlaceApi.Services.ICustomerSearchService, JobMarketPlaceApi.Services.CustomerSearchService>();
@@ -90,9 +81,7 @@ builder.Services.AddMemoryCache(options =>
 */
 
 
-
 // Add services to the container.
-
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
@@ -113,7 +102,8 @@ app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapControllers();
+// For controller-based endpoints only; minimal API endpoints are mapped separately below
+//app.MapControllers();
 
 // Minimal API endpoints mapped from extension methods
 // in separate files for better organization

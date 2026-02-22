@@ -2,7 +2,6 @@
 {
     public class JobOffer
     {
-        /* id, jobId, price */
         public Guid Id { get; set; }
 
         // The job this offer targets

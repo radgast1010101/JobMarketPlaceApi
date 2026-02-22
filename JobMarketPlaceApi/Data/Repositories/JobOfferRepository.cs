@@ -1,4 +1,3 @@
-// JobMarketPlaceApi\Data\Repositories\JobOfferRepository.cs
 using Microsoft.EntityFrameworkCore;
 using JobMarketPlaceApi.Entities;
 
@@ -15,7 +14,7 @@ namespace JobMarketPlaceApi.Data.Repositories
 
         public async Task<JobOffer> CreateAsync(JobOffer offer, CancellationToken cancellationToken = default)
         {
-            if (offer is null) throw new ArgumentNullException(nameof(offer));
+            //if (offer is null) throw new ArgumentNullException(nameof(offer));
             await _db.JobOffer.AddAsync(offer, cancellationToken).ConfigureAwait(false);
             await _db.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
             return offer;

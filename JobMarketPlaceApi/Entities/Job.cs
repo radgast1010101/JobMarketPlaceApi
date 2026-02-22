@@ -2,15 +2,8 @@
 {
     public class Job
     {
-        /* Start Date
-         Due Date
-         Budget
-         Description
-         AcceptedBy*/
-
         // Owner
         public Guid CustomerId { get; set; }
-
         public Guid Id { get; set; }
         public string Description { get; set; }
         public string AcceptedBy { get; set; }

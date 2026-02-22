@@ -1,4 +1,3 @@
-// JobMarketPlaceApi\Data\Repositories\CustomerRepository.cs
 using Microsoft.EntityFrameworkCore;
 using JobMarketPlaceApi.Entities;
 
@@ -12,6 +11,8 @@ namespace JobMarketPlaceApi.Data.Repositories
 
         public CustomerRepository(JobMarketPlaceApiContext db) => _db = db;
 
+        // Simple pagination is used,  avoids complexity of cursor management.
+        // Offset-based cursor isn't needed; use pageNumber/pageSize in endpoints.
         public async Task<SearchResult<Customer>> SearchByLastNamePrefixAsync(string prefix, int pageNumber, int pageSize, CancellationToken cancellationToken = default)
         {
             // trim and validate prefix
@@ -40,13 +41,10 @@ namespace JobMarketPlaceApi.Data.Repositories
             var hasMore = rows.Count == fetch;
             if (hasMore) rows.RemoveAt(rows.Count - 1);
 
-            // Offset-based cursor isn't needed; use pageNumber/pageSize in endpoints.
             return new SearchResult<Customer>(rows, hasMore, null, null);
         }
 
         public Task<Customer?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default) =>
             _db.Customer.AsNoTracking().FirstOrDefaultAsync(c => c.Id == id, cancellationToken);
-
-
     }
 }

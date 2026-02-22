@@ -1,4 +1,3 @@
-// JobMarketPlaceApi\Domain\DomainException.cs
 namespace JobMarketPlaceApi.Domain
 {
     public sealed class DomainException : Exception

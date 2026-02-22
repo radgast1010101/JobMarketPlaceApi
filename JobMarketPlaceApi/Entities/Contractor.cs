@@ -1,9 +1,4 @@
-﻿//namespace JobMarketPlaceApi.Entities
-//{
-//    public class Contractor
-//    {
-//    }
-//}
+﻿
 using System.ComponentModel.DataAnnotations;
 
 namespace JobMarketPlaceApi.Entities

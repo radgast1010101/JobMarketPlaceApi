@@ -1,4 +1,3 @@
-// JobMarketPlaceApi\Services\IContractorJobOfferService.cs
 using JobMarketPlaceApi.Entities;
 
 namespace JobMarketPlaceApi.Services

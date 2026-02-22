@@ -1,4 +1,3 @@
-// JobMarketPlaceApi\Services\ICustomerSearchService.cs
 using JobMarketPlaceApi.Data.Repositories;
 using JobMarketPlaceApi.Entities;
 
